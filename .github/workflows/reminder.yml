@@ -1,0 +1,32 @@
+name: French Tracker Daily Reminder
+
+on:
+  schedule:
+    # 2:30 UTC = 8:00 AM IST
+    # 7:30 UTC = 1:00 PM IST
+    # 12:30 UTC = 6:00 PM IST
+    - cron: '30 2,7,12 * * *'
+  workflow_dispatch: # Allows manual triggering for testing
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm ci || npm install
+        
+      - name: Send Email Reminder
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+        run: npm start

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joe's French Tracker — A1 + A2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1b2a; --cream: #f5f0e8; --cream-dark: #ede7d9;
+    --gold: #d4a843; --text-dark: #0d1b2a; --text-mid: #3a5068; --text-light: #7a9ab5;
+    --a1: #c0392b; --a2: #2980b9;
+    --shadow: 0 4px 20px rgba(13,27,42,0.09); --shadow-lg: 0 8px 36px rgba(13,27,42,0.14);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text-dark); min-height: 100vh; }
+
+  .header { background: var(--navy); color: var(--cream); padding: 36px 32px 28px; position: relative; overflow: hidden; }
+  .header::before { content: 'FR'; position: absolute; right: -16px; top: -18px; font-family: 'Cormorant Garamond', serif; font-size: 180px; font-weight: 700; color: rgba(255,255,255,0.04); pointer-events: none; }
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .flag { display: flex; gap: 5px; margin-bottom: 10px; }
+  .flag span { width: 16px; height: 4px; border-radius: 99px; }
+  .flag span:nth-child(1) { background: #3464a5; } .flag span:nth-child(2) { background: #f5f0e8; } .flag span:nth-child(3) { background: var(--a1); }
+  .header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2.3rem; font-weight: 700; line-height: 1.1; }
+  .header h1 span { color: var(--gold); }
+  .header-sub { font-size: 0.82rem; color: var(--text-light); margin-top: 5px; }
+  .countdown-box { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cpill { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.11); border-radius: 10px; padding: 10px 15px; text-align: center; min-width: 105px; }
+  .cpill .clabel { font-size: 0.62rem; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-light); margin-bottom: 3px; }
+  .cpill .cdays { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 500; }
+  .cpill .cdate { font-size: 0.62rem; color: rgba(255,255,255,0.35); margin-top: 1px; }
+  .a1p .cdays { color: #e87c74; } .a2p .cdays { color: #5ba3d4; }
+  .reset-btn { margin-top: 14px; background: transparent; border: 1px solid rgba(255,255,255,0.13); color: rgba(255,255,255,0.35); font-family: 'DM Sans', sans-serif; font-size: 0.7rem; padding: 4px 11px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .reset-btn:hover { border-color: var(--a1); color: #e87c74; }
+
+  .progress-section { padding: 22px 32px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .pcard { background: white; border-radius: 13px; padding: 18px 22px; box-shadow: var(--shadow); border-top: 3px solid transparent; }
+  .pcard.a1p { border-top-color: var(--a1); } .pcard.a2p { border-top-color: var(--a2); }
+  .pcard-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
+  .lbadge { font-family: 'DM Mono', monospace; font-size: 0.72rem; padding: 3px 10px; border-radius: 99px; letter-spacing: 1px; }
+  .a1p .lbadge { background: #fde8e6; color: var(--a1); } .a2p .lbadge { background: #dceefa; color: var(--a2); }
+  .ppct { font-family: 'DM Mono', monospace; font-size: 1.35rem; font-weight: 500; }
+  .a1p .ppct { color: var(--a1); } .a2p .ppct { color: var(--a2); }
+  .bar-track { height: 7px; background: var(--cream-dark); border-radius: 99px; overflow: hidden; margin-bottom: 5px; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .a1p .bar-fill { background: linear-gradient(90deg, var(--a1), #e74c3c); } .a2p .bar-fill { background: linear-gradient(90deg, var(--a2), #3498db); }
+  .bar-sub { font-size: 0.7rem; color: var(--text-light); }
+
+  .main { padding: 20px 32px 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+
+  .col-hd { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+  .col-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .a1-col .col-dot { background: var(--a1); } .a2-col .col-dot { background: var(--a2); }
+  .col-hd h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; }
+  .col-dl { font-size: 0.68rem; font-family: 'DM Mono', monospace; padding: 3px 9px; border-radius: 5px; margin-left: auto; }
+  .a1-col .col-dl { background: #fde8e6; color: var(--a1); } .a2-col .col-dl { background: #dceefa; color: var(--a2); }
+
+  .week { background: white; border-radius: 13px; margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .week-hd { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; border-bottom: 1px solid var(--cream-dark); }
+  .week-hd:hover { background: var(--cream); }
+  .week-hd-left { display: flex; align-items: center; gap: 9px; }
+  .wnum { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-light); }
+  .wname { font-weight: 600; font-size: 0.86rem; }
+  .wdates { font-size: 0.68rem; color: var(--text-light); font-family: 'DM Mono', monospace; margin-left: auto; margin-right: 10px; }
+  .chevron { color: var(--text-light); font-size: 0.75rem; transition: transform 0.2s; }
+  .week.closed .chevron { transform: rotate(-90deg); }
+  .week-body { padding: 4px 0 8px; }
+  .week.closed .week-body { display: none; }
+
+  .item { display: flex; align-items: flex-start; gap: 11px; padding: 9px 15px; cursor: pointer; transition: background 0.13s; border-radius: 5px; margin: 0 4px; }
+  .item:hover { background: var(--cream); }
+  .item.done { opacity: 0.5; }
+  .item.done .item-text { text-decoration: line-through; color: var(--text-light); }
+  .cb { width: 17px; height: 17px; border-radius: 5px; border: 2px solid var(--cream-dark); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.18s; font-size: 0.65rem; color: white; }
+  .item.done .cb { border-color: transparent; }
+  .a1-col .item.done .cb { background: var(--a1); } .a2-col .item.done .cb { background: var(--a2); }
+  .item-body { flex: 1; min-width: 0; }
+  .item-text { font-size: 0.84rem; color: var(--text-dark); line-height: 1.4; }
+  .item-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+
+  .tag { display: inline-block; font-size: 0.6rem; letter-spacing: 0.7px; text-transform: uppercase; padding: 1px 7px; border-radius: 4px; font-weight: 500; }
+  .tg { background: #fef3cd; color: #8a6400; } .tv { background: #d4edda; color: #1a6e34; }
+  .ts { background: #d8e8ff; color: #1a4a8a; } .tp { background: #f3d9fa; color: #6a1a8a; } .tr { background: #f0e8ff; color: #4a1a8a; }
+
+  .plinks { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+  .plink { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 500; padding: 4px 10px; border-radius: 6px; text-decoration: none; border: 1px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .plink:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .pl-red   { color: #b83232; background: #fde8e6; border-color: #f5c0bb; }
+  .pl-blue  { color: #1a5a8a; background: #dceefa; border-color: #b0d4f0; }
+  .pl-green { color: #1a6a34; background: #d4edda; border-color: #a8d8b8; }
+  .pl-gold  { color: #7a5200; background: #fef3cd; border-color: #f5dd8a; }
+  .pl-purple{ color: #5a1a8a; background: #f3d9fa; border-color: #d9a8f5; }
+
+  .daily-section { grid-column: 1 / -1; background: var(--navy); border-radius: 15px; padding: 22px 26px; color: var(--cream); margin-top: 4px; }
+  .daily-header { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 700; margin-bottom: 14px; color: var(--gold); }
+  .daily-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 10px; }
+  .dcard { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.09); border-radius: 9px; padding: 13px 15px; }
+  .dtime { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 1.3px; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+  .dtask { font-size: 0.8rem; color: rgba(245,240,232,0.82); line-height: 1.4; }
+  .dmins { font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-top: 3px; }
+
+  @media (max-width: 768px) {
+    .main, .progress-section { grid-template-columns: 1fr; }
+    .daily-section { grid-column: 1; }
+    .header h1 { font-size: 1.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div>
+      <div class="flag"><span></span><span></span><span></span></div>
+      <h1>French Study <span>Tracker</span></h1>
+      <p class="header-sub">Joe · A1 deadline May 15 · A2 deadline May 30 · Running simultaneously</p>
+    </div>
+    <div class="countdown-box" id="countdowns"></div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">↺ Reset all progress</button>
+</div>
+
+<div class="progress-section">
+  <div class="pcard a1p">
+    <div class="pcard-top"><span class="lbadge">A1</span><span class="ppct" id="a1-pct">0%</span></div>
+    <div class="bar-track"><div class="bar-fill" id="a1-bar" style="width:0%"></div></div>
+    <div class="bar-sub"><span id="a1-done">0</span>/<span id="a1-total">0</span> done · Deadline 15 May 2026</div>
+  </div>
+  <div class="pcard a2p">
+    <div class="pcard-top"><span class="lbadge">A2</span><span class="ppct" id="a2-pct">0%</span></div>
+    <div class="bar-track"><div class="bar-fill" id="a2-bar" style="width:0%"></div></div>
+    <div class="bar-sub"><span id="a2-done">0</span>/<span id="a2-total">0</span> done · Deadline 30 May 2026</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══ A1 COLUMN ═══ -->
+<div class="a1-col">
+  <div class="col-hd"><div class="col-dot"></div><h2>DELF A1</h2><span class="col-dl">→ 15 May</span></div>
+
+  <div class="week" id="wa11">
+    <div class="week-hd" onclick="toggleW('wa11')"><div class="week-hd-left"><span class="wnum">Week 1</span><span class="wname">Foundations</span></div><span class="wdates">Apr 23–29</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a1-01" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Greetings & everyday phrases (Bonjour, Merci, S'il vous plaît…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-salutations.html" target="_blank">📝 Salutations Exercise</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2196" target="_blank">✏️ Greetings Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-02" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Self-introduction: name, age, nationality, job, city</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A1" target="_blank">📺 TV5Monde A1</a>
+          <a class="plink pl-green" href="https://www.podcastfrancaisfacile.com/podcast/se-presenter.html" target="_blank">🎙️ Podcast — Se présenter</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-03" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Numbers 0–100 + ordinal numbers (premier, deuxième…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=255" target="_blank">✏️ Numbers Quiz</a>
+          <a class="plink pl-gold" href="https://quizlet.com/fr/149219905/french-numbers-1-100-flash-cards/" target="_blank">🃏 Quizlet Numbers</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-04" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Days of week, months, seasons, telling the date</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-jours.html" target="_blank">📝 Days Exercise</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2059" target="_blank">✏️ Months Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-05" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Verb être (to be) — all persons, present tense</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/etre" target="_blank">⚡ Conjuguemos — Être</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=14" target="_blank">✏️ Être Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-06" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Verb avoir (to have) — all persons, present tense</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/avoir" target="_blank">⚡ Conjuguemos — Avoir</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=13" target="_blank">✏️ Avoir Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-07" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Definite & indefinite articles (le, la, les, un, une, des)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=246" target="_blank">✏️ Articles Exercise</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-articles.html" target="_blank">📝 Articles — BDF</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="week" id="wa12">
+    <div class="week-hd" onclick="toggleW('wa12')"><div class="week-hd-left"><span class="wnum">Week 2</span><span class="wname">Core Vocabulary</span></div><span class="wdates">Apr 30–May 6</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a1-08" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Regular -er verbs (parler, manger, aimer, habiter) — present tense</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/parler" target="_blank">⚡ -er Verb Drills</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=47" target="_blank">✏️ -er Verbs Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-09" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Question words: qui, quoi, où, quand, comment, combien, pourquoi</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2134" target="_blank">✏️ Question Words</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-mots-interrogatifs.html" target="_blank">📝 Interrogatives</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-10" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Negation: ne…pas construction with practical examples</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2108" target="_blank">✏️ Negation Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/la-negation.html" target="_blank">📝 La Négation</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-11" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Family members vocabulary + relationships</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/fr/3603093/french-family-members-flash-cards/" target="_blank">🃏 Family Flashcards</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=a_la_maison&level[]=A1" target="_blank">📺 TV5Monde — À la Maison</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-12" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Food & drinks vocabulary + ordering at a café/restaurant</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/fr/81891551/french-food-vocabulary-flash-cards/" target="_blank">🃏 Food Vocab</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=manger_et_boire&level[]=A1" target="_blank">📺 Manger & Boire</a>
+          <a class="plink pl-green" href="https://www.podcastfrancaisfacile.com/podcast/au-marche.html" target="_blank">🎙️ Podcast — Au Marché</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-13" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Colors + basic adjectives + agreement rules (grand/petit, beau/laid…)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2076" target="_blank">✏️ Adjective Agreement</a>
+          <a class="plink pl-gold" href="https://quizlet.com/fr/1853879/french-colors-flash-cards/" target="_blank">🃏 Colors Flashcards</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-14" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Places in town (la gare, le marché, la pharmacie, l'école…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-commerces.html" target="_blank">📝 Les Commerces</a>
+          <a class="plink pl-gold" href="https://quizlet.com/fr/1936827/places-in-town-french-flash-cards/" target="_blank">🃏 Places Flashcards</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="week" id="wa13">
+    <div class="week-hd" onclick="toggleW('wa13')"><div class="week-hd-left"><span class="wnum">Week 3</span><span class="wname">Grammar + Daily Life</span></div><span class="wdates">May 7–13</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a1-15" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Possessive adjectives (mon/ma/mes, ton/ta/tes, son/sa/ses…)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2039" target="_blank">✏️ Possessives Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-adjectifs-possessifs.html" target="_blank">📝 Possessive Adjectives</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-16" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Demonstrative adjectives (ce, cet, cette, ces)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2041" target="_blank">✏️ Demonstratives Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-adjectifs-demonstratifs.html" target="_blank">📝 Ce/Cet/Cette Exercise</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-17" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Key irregular verbs: aller, faire, vouloir, pouvoir (present)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/aller" target="_blank">⚡ Aller Drill</a>
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/faire" target="_blank">⚡ Faire Drill</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=191" target="_blank">✏️ Irregular Verbs Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-18" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Transportation + prepositions of place (à, en, dans, sur, sous)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/fr/8038278/french-transportation-vocabulary-flash-cards/" target="_blank">🃏 Transport Vocab</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2103" target="_blank">✏️ Prepositions Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-19" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Shopping: prices, asking for items, numbers in context</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=acheter&level[]=A1" target="_blank">📺 Faire les Courses</a>
+          <a class="plink pl-green" href="https://www.podcastfrancaisfacile.com/podcast/au-marche.html" target="_blank">🎙️ Podcast — Au Marché</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-20" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Telling time (Il est… heures / et demie / et quart…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2060" target="_blank">✏️ Telling Time Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/l-heure.html" target="_blank">📝 L'Heure Exercise</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-21" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">A1 Listening: short dialogues, greetings, form-filling exercises</div>
+        <div class="item-row"><span class="tag ts">Skill</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A1&skill[]=ecouter" target="_blank">📺 TV5Monde A1 Listening</a>
+          <a class="plink pl-green" href="https://savoirs.rfi.fr/fr/apprendre-enseigner/langue-francaise/journal-en-francais-facile" target="_blank">📻 RFI Français Facile</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-22" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">A1 Reading: signs, short messages, simple ads</div>
+        <div class="item-row"><span class="tag ts">Skill</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A1&skill[]=lire" target="_blank">📺 TV5Monde A1 Reading</a>
+          <a class="plink pl-gold" href="https://www.pointdufle.net/index.php/activites-fle/niveaux-a1-a2" target="_blank">✏️ Point du FLE A1</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="week" id="wa14">
+    <div class="week-hd" onclick="toggleW('wa14')"><div class="week-hd-left"><span class="wnum">Final 2 days</span><span class="wname">Review + Mock</span></div><span class="wdates">May 14–15</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a1-23" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Full A1 vocabulary revision — all thematic word lists</div>
+        <div class="item-row"><span class="tag tr">Review</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/subject/french-a1/" target="_blank">🃏 Quizlet A1 All Sets</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-24" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Grammar revision: être/avoir, -er verbs, adjectives, negation, articles</div>
+        <div class="item-row"><span class="tag tr">Review</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?niveau=1" target="_blank">✏️ FrançaisFacile Level 1 — All</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a1-25" onclick="toggleItem(event,this,'a1')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">DELF A1 mock test — full 4-skill practice paper</div>
+        <div class="item-row"><span class="tag tp">Practice</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://www.ciep.fr/delf-dalf/delf-adultes/exemples-de-sujets-a1-a2" target="_blank">📋 CIEP Official A1 Sample</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A1" target="_blank">📺 TV5Monde Full A1</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+</div><!-- /a1-col -->
+
+<!-- ═══ A2 COLUMN ═══ -->
+<div class="a2-col">
+  <div class="col-hd"><div class="col-dot"></div><h2>DELF A2</h2><span class="col-dl">→ 30 May</span></div>
+
+  <div class="week" id="wa21">
+    <div class="week-hd" onclick="toggleW('wa21')"><div class="week-hd-left"><span class="wnum">Week 1</span><span class="wname">Past Tenses & Reflexives</span></div><span class="wdates">Apr 23–29</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a2-01" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Passé composé with avoir — formation + common past participles</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/3" target="_blank">⚡ Conjuguemos PC Drill</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=164" target="_blank">✏️ Passé Composé Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-02" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Passé composé with être — DR MRS VANDERTRAMP verbs</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2167" target="_blank">✏️ Être + PC Exercise</a>
+          <a class="plink pl-gold" href="https://quizlet.com/fr/10183148/dr-mrs-vandertramp-flash-cards/" target="_blank">🃏 VANDERTRAMP Cards</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-03" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Passé composé — agreement rules (gender/number with être)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2168" target="_blank">✏️ Agreement in PC</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/le-participe-passe.html" target="_blank">📝 Participe Passé</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-04" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Reflexive verbs in present tense (se lever, se coucher, se laver…)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-verbes-pronominaux.html" target="_blank">📝 Verbes Pronominaux</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2189" target="_blank">✏️ Reflexive Verbs Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-05" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Futur proche (aller + infinitive) — making plans & intentions</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2117" target="_blank">✏️ Futur Proche Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/le-futur-proche.html" target="_blank">📝 Futur Proche Exercises</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-06" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Health & body parts vocabulary (symptoms, doctor visit context)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/fr/5064316/french-body-parts-flash-cards/" target="_blank">🃏 Body Parts Cards</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=sante&level[]=A2" target="_blank">📺 TV5Monde — Santé</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="week" id="wa22">
+    <div class="week-hd" onclick="toggleW('wa22')"><div class="week-hd-left"><span class="wnum">Week 2</span><span class="wname">Imparfait, Future & Pronouns</span></div><span class="wdates">Apr 30–May 6</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a2-07" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Imparfait — formation + usage vs passé composé (habitual vs action)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/4" target="_blank">⚡ Imparfait Drills</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2119" target="_blank">✏️ Imparfait vs PC Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-08" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Futur simple — formation for regular & key irregular verbs</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-purple" href="https://conjuguemos.com/verb/french/5" target="_blank">⚡ Futur Simple Drills</a>
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=196" target="_blank">✏️ Futur Simple Quiz</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-09" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Direct object pronouns (le, la, les) — placement rules</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2049" target="_blank">✏️ COD Pronouns Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-pronoms-cod.html" target="_blank">📝 COD Exercise</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-10" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Indirect object pronouns (lui, leur) — placement rules</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2050" target="_blank">✏️ COI Pronouns Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-pronoms-coi.html" target="_blank">📝 COI Exercise</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-11" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Work & professions vocabulary + expressing your occupation</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=travail&level[]=A2" target="_blank">📺 TV5Monde — Le Travail</a>
+          <a class="plink pl-gold" href="https://quizlet.com/fr/271066523/french-jobs-and-professions-flash-cards/" target="_blank">🃏 Jobs & Professions</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-12" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Housing & accommodation vocabulary (louer, les meubles, le loyer…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/fr/4056791/french-house-vocabulary-flash-cards/" target="_blank">🃏 Housing Vocab</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=logement&level[]=A2" target="_blank">📺 TV5Monde — Logement</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="week" id="wa23">
+    <div class="week-hd" onclick="toggleW('wa23')"><div class="week-hd-left"><span class="wnum">Week 3</span><span class="wname">Comparatives & Lifestyle</span></div><span class="wdates">May 7–13</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a2-13" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Comparative (plus/moins/aussi…que) + superlative (le plus…)</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2098" target="_blank">✏️ Comparative Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/le-comparatif.html" target="_blank">📝 Comparatif Exercises</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-14" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Partitive articles (du, de la, des) + quantity expressions in context</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=247" target="_blank">✏️ Partitive Articles Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-articles-partitifs.html" target="_blank">📝 Articles Partitifs</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-15" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Travel & transport vocab (billet, réservation, retard, destination…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/fr/9004702/french-travel-vocabulary-flash-cards/" target="_blank">🃏 Travel Vocabulary</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=voyage&level[]=A2" target="_blank">📺 TV5Monde — Voyage</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-16" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Weather expressions (Il fait…, Il y a…, La météo…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/la-meteo.html" target="_blank">📝 La Météo Exercise</a>
+          <a class="plink pl-green" href="https://www.podcastfrancaisfacile.com/podcast/la-meteo.html" target="_blank">🎙️ Podcast — La Météo</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-17" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">A2 Listening: radio announcements, voicemails, short conversations</div>
+        <div class="item-row"><span class="tag ts">Skill</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A2&skill[]=ecouter" target="_blank">📺 TV5Monde A2 Listening</a>
+          <a class="plink pl-green" href="https://savoirs.rfi.fr/fr/apprendre-enseigner/langue-francaise/journal-en-francais-facile" target="_blank">📻 RFI — Journal Facile</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-18" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">A2 Reading: short articles, menus, simple correspondence</div>
+        <div class="item-row"><span class="tag ts">Skill</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A2&skill[]=lire" target="_blank">📺 TV5Monde A2 Reading</a>
+          <a class="plink pl-gold" href="https://www.pointdufle.net/index.php/activites-fle/niveaux-a1-a2" target="_blank">✏️ Point du FLE A2</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="week" id="wa24">
+    <div class="week-hd" onclick="toggleW('wa24')"><div class="week-hd-left"><span class="wnum">Week 4</span><span class="wname">Expression & Writing</span></div><span class="wdates">May 14–20</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a2-19" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Expressing opinions & preferences (Je pense que, À mon avis, J'aime…)</div>
+        <div class="item-row"><span class="tag ts">Skill</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/donner-son-avis.html" target="_blank">📝 Donner son Avis</a>
+          <a class="plink pl-green" href="https://www.podcastfrancaisfacile.com/podcast/exprimer-son-opinion.html" target="_blank">🎙️ Podcast — Opinion Phrases</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-20" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Writing formal messages & emails (structure + set phrases)</div>
+        <div class="item-row"><span class="tag ts">Skill</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2200" target="_blank">✏️ Formal Email Practice</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A2&skill[]=ecrire" target="_blank">📺 TV5Monde A2 Writing</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-21" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Describing people's appearance & personality (A2 adjectives)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2082" target="_blank">✏️ Describing People</a>
+          <a class="plink pl-gold" href="https://quizlet.com/fr/10374938/french-personality-adjectives-flash-cards/" target="_blank">🃏 Personality Adjectives</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-22" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Media & technology vocab (les réseaux sociaux, une appli, le journal…)</div>
+        <div class="item-row"><span class="tag tv">Vocab</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/fr/189274979/french-technology-vocabulary-flash-cards/" target="_blank">🃏 Tech Vocabulary</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?thematic[]=medias&level[]=A2" target="_blank">📺 TV5Monde — Médias</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-23" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Linking words: parce que, donc, mais, cependant, d'abord, ensuite, enfin</div>
+        <div class="item-row"><span class="tag tg">Grammar</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?id_exercice=2144" target="_blank">✏️ Connecting Words Quiz</a>
+          <a class="plink pl-blue" href="https://www.bonjourdefrance.com/exercices/contenu/les-connecteurs.html" target="_blank">📝 Les Connecteurs</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="week" id="wa25">
+    <div class="week-hd" onclick="toggleW('wa25')"><div class="week-hd-left"><span class="wnum">Week 5</span><span class="wname">Final Sprint + Mock</span></div><span class="wdates">May 21–30</span><span class="chevron">▾</span></div>
+    <div class="week-body">
+
+      <div class="item" data-id="a2-24" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Full A2 vocabulary revision — all thematic word lists</div>
+        <div class="item-row"><span class="tag tr">Review</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://quizlet.com/subject/french-a2/" target="_blank">🃏 Quizlet A2 All Sets</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-25" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Grammar consolidation: all tenses, pronouns, comparatives</div>
+        <div class="item-row"><span class="tag tr">Review</span></div>
+        <div class="plinks">
+          <a class="plink pl-red" href="https://www.francaisfacile.com/exercice/exercice-francais.php?niveau=2" target="_blank">✏️ FrançaisFacile Level 2 — All</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-26" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">A2 production orale — describe a photo, give an opinion out loud</div>
+        <div class="item-row"><span class="tag tp">Practice</span></div>
+        <div class="plinks">
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A2&skill[]=parler" target="_blank">📺 TV5Monde A2 Speaking</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-27" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">DELF A2 full mock test — all 4 skills (official sample paper)</div>
+        <div class="item-row"><span class="tag tp">Practice</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://www.ciep.fr/delf-dalf/delf-adultes/exemples-de-sujets-a1-a2" target="_blank">📋 CIEP Official A2 Sample</a>
+          <a class="plink pl-blue" href="https://apprendre.tv5monde.com/fr/exercices-de-francais?level[]=A2" target="_blank">📺 TV5Monde Full A2</a>
+        </div>
+      </div></div>
+
+      <div class="item" data-id="a2-28" onclick="toggleItem(event,this,'a2')"><div class="cb">✓</div><div class="item-body">
+        <div class="item-text">Review weak areas identified from mock test results</div>
+        <div class="item-row"><span class="tag tr">Review</span></div>
+        <div class="plinks">
+          <a class="plink pl-gold" href="https://www.pointdufle.net/index.php/activites-fle/niveaux-a1-a2" target="_blank">✏️ Point du FLE — Targeted</a>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+</div><!-- /a2-col -->
+
+<!-- DAILY SCHEDULE -->
+<div class="daily-section">
+  <div class="daily-header">📅 Daily Routine — 1.5 hrs total</div>
+  <div class="daily-grid">
+    <div class="dcard"><div class="dtime">Morning · 7–7:20am</div><div class="dtask">Duolingo streak + Quizlet (10 new words from that week's topic)</div><div class="dmins">20 min</div></div>
+    <div class="dcard"><div class="dtime">Lunch · 12–12:30pm</div><div class="dtask">1 TV5Monde video or RFI Français Facile episode with transcript</div><div class="dmins">30 min</div></div>
+    <div class="dcard"><div class="dtime">Evening · 7–8pm</div><div class="dtask">Tick 1 topic from A1 + 1 from A2 · Click and complete the practice links</div><div class="dmins">60 min</div></div>
+    <div class="dcard"><div class="dtime">Night · 10–10:15pm</div><div class="dtask">Write 3–5 French sentences in a journal using today's grammar or vocab</div><div class="dmins">15 min</div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+  const A1D = new Date('2026-05-15');
+  const A2D = new Date('2026-05-30');
+  function daysLeft(d) { return Math.max(0, Math.ceil((d - new Date()) / 86400000)); }
+
+  document.getElementById('countdowns').innerHTML = `
+    <div class="cpill a1p"><div class="clabel">A1 deadline</div><div class="cdays">${daysLeft(A1D)}</div><div class="cdate">days · 15 May</div></div>
+    <div class="cpill a2p"><div class="clabel">A2 deadline</div><div class="cdays">${daysLeft(A2D)}</div><div class="cdate">days · 30 May</div></div>`;
+
+  function updateProgress(level) {
+    const items = document.querySelectorAll(`.${level}-col .item`);
+    const done = [...items].filter(i => i.classList.contains('done')).length;
+    const total = items.length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    document.getElementById(`${level}-pct`).textContent = pct + '%';
+    document.getElementById(`${level}-bar`).style.width = pct + '%';
+    document.getElementById(`${level}-done`).textContent = done;
+    document.getElementById(`${level}-total`).textContent = total;
+  }
+
+  function toggleItem(e, el, level) {
+    if (e.target.closest('a')) return;
+    el.classList.toggle('done');
+    const state = JSON.parse(localStorage.getItem('ft') || '{}');
+    state[el.dataset.id] = el.classList.contains('done');
+    localStorage.setItem('ft', JSON.stringify(state));
+    updateProgress(level);
+  }
+
+  function toggleW(id) { document.getElementById(id).classList.toggle('closed'); }
+
+  function resetAll() {
+    if (!confirm('Reset all progress?')) return;
+    localStorage.removeItem('ft');
+    document.querySelectorAll('.item').forEach(i => i.classList.remove('done'));
+    updateProgress('a1'); updateProgress('a2');
+  }
+
+  const saved = JSON.parse(localStorage.getItem('ft') || '{}');
+  document.querySelectorAll('.item').forEach(el => { if (saved[el.dataset.id]) el.classList.add('done'); });
+  updateProgress('a1');
+  updateProgress('a2');
+</script>
+</body>
+</html>

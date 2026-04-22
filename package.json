@@ -1,0 +1,12 @@
+{
+  "name": "french_tracker_reminder",
+  "version": "1.0.0",
+  "description": "Daily email reminder for French tracker",
+  "main": "send_reminder.js",
+  "scripts": {
+    "start": "node send_reminder.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.13"
+  }
+}
