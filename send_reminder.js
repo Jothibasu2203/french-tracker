@@ -44,8 +44,7 @@ async function sendReminder() {
         </div>
         
         <div style="text-align: center; margin-top: 30px;">
-          <!-- NOTE: Replace YOUR_USERNAME with your GitHub username to link directly to your hosted page! -->
-          <a href="https://YOUR_USERNAME.github.io/french-tracker/french_tracker.html" style="background-color: #2980b9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+          <a href="https://Jothibasu2203.github.io/french-tracker/french_tracker.html" style="background-color: #2980b9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
             Open My French Tracker
           </a>
           <p style="font-size: 12px; color: #7a9ab5; margin-top: 10px;">
